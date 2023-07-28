@@ -65,17 +65,15 @@ async def remove_old_files(delay_seconds: int):
         await asyncio.sleep(delay_seconds)
 
 def download_audio(url: str) -> str:
-    title = subprocess.check_output([YT_DLP_PATH, "--get-filename", "-o", f"{DOWNLOAD_FOLDER}/%(title)s", url], text=True)
-    title = make_safe_filename(title).strip() + ".webm"
-    print(title)
-    cmd = f"{YT_DLP_PATH} -f 'bestaudio' -o '{DOWNLOAD_FOLDER}/{title}' -- {url}"
+    cmd = f"{YT_DLP_PATH} -f 'bestaudio' -o '{DOWNLOAD_FOLDER}/%(title)s.%(ext)s' -- {url}"
     try:
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError:
         raise HTTPException(status_code=500, detail="Failed to download audio.")
     
     # Get the downloaded file name
-    return title
+    title = subprocess.check_output([YT_DLP_PATH, "--get-filename", "-o", f"{DOWNLOAD_FOLDER}/%(title)s", url], text=True)
+    return title.strip() + ".webm"
 
 def convert_to_mp3(input_file: str, bitrate: int) -> str:
     output_file = f"{os.path.splitext(input_file)[0]}_{bitrate}kbps.mp3"
