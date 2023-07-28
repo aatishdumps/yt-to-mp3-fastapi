@@ -12,6 +12,6 @@ Python 3.6 or higher<br>
 <a href="https://github.com/FFmpeg/FFmpeg">ffmpeg</a> and <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>
 
 <h3>Deploy</h3>
-<a href="https://heroku.com/deploy?template=https://github.com/aatishdumps/yt-to-mp3-fastapi">
+<a target="_blank" href="https://heroku.com/deploy?template=https://github.com/aatishdumps/yt-to-mp3-fastapi">
   <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
 </a>
