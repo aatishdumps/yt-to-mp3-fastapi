@@ -63,7 +63,7 @@ async def remove_old_files(delay_seconds: int):
         await asyncio.sleep(delay_seconds)
 
 def download_audio(url: str) -> str:
-    cmd = f"{YT_DLP_PATH} -f bestaudio -o {DOWNLOAD_FOLDER}/%(title)s.%(ext)s -- {url}"
+    cmd = f"{YT_DLP_PATH} -f 'bestaudio' -o '{DOWNLOAD_FOLDER}/%(title)s.%(ext)s' -- {url}"
     print(cmd)
     try:
         subprocess.run(cmd, shell=True, check=True)
