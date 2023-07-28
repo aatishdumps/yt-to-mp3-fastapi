@@ -2,12 +2,12 @@ import os
 import asyncio
 import ffmpeg
 import pickle
-from urllib.parse import quote_plus,unquote_plus
+from urllib.parse import quote_plus, unquote_plus
 import time
 import subprocess
+import re
 from fastapi import FastAPI, HTTPException, Body, BackgroundTasks
 from fastapi.responses import FileResponse
-import unicodedata
 
 app = FastAPI()
 
@@ -93,6 +93,14 @@ async def delete_file_after_delay(file_path: str, delay_seconds: int):
     if os.path.exists(file_path):
         os.remove(file_path)
 
+# Function to create safe filenames by removing or replacing invalid characters
+def make_safe_filename(file_name: str) -> str:
+    # Remove any characters that are not alphanumeric, space, hyphen, or underscore
+    cleaned_name = re.sub(r'[^\w\s-]', '', file_name)
+    # Replace spaces with underscores
+    cleaned_name = cleaned_name.replace(' ', '_')
+    return cleaned_name
+
 @app.post("/convert/")
 async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = Body(...), background_tasks: BackgroundTasks = BackgroundTasks()):
     if bitrate not in [128, 192, 256, 320]:
@@ -115,25 +123,21 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
     title = os.path.splitext(os.path.basename(audio_file))[0]
 
     # Create the download link for the converted MP3 file
-    download_link = get_download_link(mp3_file)
+    safe_file_name = make_safe_filename(title) + f"_{bitrate}kbps.mp3"
+    download_link = get_download_link(os.path.join(DOWNLOAD_FOLDER, safe_file_name))
 
     # Schedule a background task to delete the .webm file after conversion
     background_tasks.add_task(delete_file_after_delay, audio_file, 0)
 
     return {"title": title, "download_link": download_link}
 
-def safe_filename(file_name: str) -> str:
-    safe_characters = {'/', '-', '_', '.'}  # Add any additional safe characters as needed
-    cleaned_name = unicodedata.normalize('NFKD', file_name).encode('ASCII', 'ignore').decode()
-    return ''.join(c if c.isalnum() or c in safe_characters else '_' for c in cleaned_name)
-
 @app.get("/download/{file_name}")
 async def download_mp3(file_name: str):
     decoded_file_name = unquote_plus(file_name)
-    cleaned_file_name = safe_filename(decoded_file_name)
-    file_path = os.path.join(DOWNLOAD_FOLDER, cleaned_file_name)
+    safe_file_name = make_safe_filename(decoded_file_name)
+    file_path = os.path.join(DOWNLOAD_FOLDER, safe_file_name)
     if os.path.exists(file_path):
-        return FileResponse(file_path, headers={"Content-Disposition": f'attachment; filename="{cleaned_file_name}"'})
+        return FileResponse(file_path, media_type="audio/mpeg", headers={"Content-Disposition": f"attachment; filename={safe_file_name}"})
     else:
         raise HTTPException(status_code=404, detail="File not found.")
 
