@@ -85,7 +85,7 @@ def convert_to_mp3(input_file: str, bitrate: int) -> str:
 
 def get_download_link(file_path: str) -> str:
     file_name = os.path.basename(file_path)
-    encoded_file_name = quote(file_name)
+    encoded_file_name = quote(file_name.encode('utf8'))
     return f"{APP_URL}/download/{encoded_file_name}"
 
 async def delete_file_after_delay(file_path: str, delay_seconds: int):
