@@ -136,10 +136,16 @@ async def download_mp3(file_name: str):
     decoded_file_name = unquote_plus(file_name)
     safe_file_name = make_safe_filename(decoded_file_name)
     file_path = os.path.join(DOWNLOAD_FOLDER, safe_file_name)
+
+    print("Requested File Name:", decoded_file_name)
+    print("Generated Safe File Name:", safe_file_name)
+    print("Files in DOWNLOAD_FOLDER:", os.listdir(DOWNLOAD_FOLDER))
+
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type="audio/mpeg", headers={"Content-Disposition": f"attachment; filename={safe_file_name}"})
     else:
         raise HTTPException(status_code=404, detail="File not found.")
+
 
 if __name__ == "__main__":
     if not os.path.exists(DOWNLOAD_FOLDER):
