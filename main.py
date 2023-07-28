@@ -83,7 +83,7 @@ def convert_to_mp3(input_file: str, bitrate: int) -> str:
     return output_file
 
 def get_download_link(file_path: str) -> str:
-    file_name = os.path.basename(file_path)
+    file_name = os.path.basename(file_path).encode('utf-8')
     encoded_file_name = quote_plus(file_name)
     return f"{APP_URL}/download/{encoded_file_name}"
 
