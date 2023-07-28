@@ -6,8 +6,8 @@ from urllib.parse import quote_plus,unquote_plus
 import time
 import subprocess
 from fastapi import FastAPI, HTTPException, Body, BackgroundTasks
-# from fastapi.responses import FileResponse
-from starlette.responses import StreamingResponse
+from fastapi.responses import FileResponse
+import unicodedata
 
 app = FastAPI()
 
@@ -122,12 +122,18 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
 
     return {"title": title, "download_link": download_link}
 
+def safe_filename(file_name: str) -> str:
+    safe_characters = {'/', '-', '_', '.'}  # Add any additional safe characters as needed
+    cleaned_name = unicodedata.normalize('NFKD', file_name).encode('ASCII', 'ignore').decode()
+    return ''.join(c if c.isalnum() or c in safe_characters else '_' for c in cleaned_name)
+
 @app.get("/download/{file_name}")
 async def download_mp3(file_name: str):
     decoded_file_name = unquote_plus(file_name)
-    file_path = os.path.join(DOWNLOAD_FOLDER, decoded_file_name)
+    cleaned_file_name = safe_filename(decoded_file_name)
+    file_path = os.path.join(DOWNLOAD_FOLDER, cleaned_file_name)
     if os.path.exists(file_path):
-        return StreamingResponse(open(file_path, "rb"), media_type="audio/mpeg", headers={"Content-Disposition": f'attachment; filename="{decoded_file_name}"'})
+        return FileResponse(file_path, headers={"Content-Disposition": f'attachment; filename="{cleaned_file_name}"'})
     else:
         raise HTTPException(status_code=404, detail="File not found.")
 
