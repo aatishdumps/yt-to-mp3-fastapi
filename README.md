@@ -10,3 +10,8 @@ Customizable paths for ffmpeg and yt-dlp using environment variables.
 <h3>Requirements</h3>
 Python 3.6 or higher<br>
 <a href="https://github.com/FFmpeg/FFmpeg">ffmpeg</a> and <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>
+
+<h3>Deploy</h3>
+<a target="_blank" href="https://heroku.com/deploy?template=https://github.com/aatishdumps/yt-to-mp3-fastapi">
+  <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
+</a>
