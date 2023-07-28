@@ -10,8 +10,8 @@ from fastapi import FastAPI, HTTPException, Body, BackgroundTasks
 app = FastAPI()
 
 # Set custom paths for ffmpeg and yt-dlp using environment variables
-FFMPEG_PATH = os.getenv("FFMPEG_PATH", "C:\\Users\\Aatish\\Downloads\\Video\\ffmpeg.exe")
-YT_DLP_PATH = os.getenv("YT_DLP_PATH", ".venv\\Scripts\\yt-dlp.exe")
+FFMPEG_PATH = os.getenv("FFMPEG_PATH", "ffmpeg")
+YT_DLP_PATH = os.getenv("YT_DLP_PATH", "yt-dlp")
 
 DOWNLOAD_FOLDER = "./download"
 
