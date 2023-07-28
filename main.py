@@ -2,10 +2,11 @@ import os
 import asyncio
 import ffmpeg
 import pickle
-from urllib.parse import quote
+from urllib.parse import quote,unquote
 import time
 import subprocess
 from fastapi import FastAPI, HTTPException, Body, BackgroundTasks
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -120,6 +121,15 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
     background_tasks.add_task(delete_file_after_delay, audio_file, 0)
 
     return {"title": title, "download_link": download_link}
+
+@app.get("/download/{file_name}")
+async def download_mp3(file_name: str):
+    decoded_file_name = unquote(file_name)
+    file_path = os.path.join(DOWNLOAD_FOLDER, decoded_file_name)
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="audio/mpeg", headers={"Content-Disposition": f"attachment; filename={decoded_file_name}"})
+    else:
+        raise HTTPException(status_code=404, detail="File not found.")
 
 if __name__ == "__main__":
     if not os.path.exists(DOWNLOAD_FOLDER):
