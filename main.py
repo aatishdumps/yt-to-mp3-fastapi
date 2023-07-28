@@ -123,7 +123,8 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
 
 @app.get("/download/{file_name}")
 async def download_mp3(file_name: str):
-    decoded_file_name = unquote_plus(file_name.encode())
+    decoded_file_name = unquote_plus(file_name)
+    print(decoded_file_name)
     file_path = os.path.join(DOWNLOAD_FOLDER, decoded_file_name)
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type="audio/mpeg", headers={"Content-Disposition": f"attachment; filename={decoded_file_name}"})
