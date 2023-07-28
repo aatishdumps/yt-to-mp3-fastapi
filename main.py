@@ -2,7 +2,7 @@ import os
 import asyncio
 import ffmpeg
 import pickle
-from urllib.parse import quote,unquote
+from urllib.parse import quote_plus,unquote_plus
 import time
 import subprocess
 from fastapi import FastAPI, HTTPException, Body, BackgroundTasks
@@ -65,7 +65,6 @@ async def remove_old_files(delay_seconds: int):
 
 def download_audio(url: str) -> str:
     cmd = f"{YT_DLP_PATH} -f 'bestaudio' -o '{DOWNLOAD_FOLDER}/%(title)s.%(ext)s' -- {url}"
-    print(cmd)
     try:
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError:
@@ -85,7 +84,7 @@ def convert_to_mp3(input_file: str, bitrate: int) -> str:
 
 def get_download_link(file_path: str) -> str:
     file_name = os.path.basename(file_path)
-    encoded_file_name = quote(file_name.encode('utf8'))
+    encoded_file_name = quote_plus(file_name)
     return f"{APP_URL}/download/{encoded_file_name}"
 
 async def delete_file_after_delay(file_path: str, delay_seconds: int):
@@ -124,7 +123,7 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
 
 @app.get("/download/{file_name}")
 async def download_mp3(file_name: str):
-    decoded_file_name = unquote(file_name)
+    decoded_file_name = unquote_plus(file_name)
     file_path = os.path.join(DOWNLOAD_FOLDER, decoded_file_name)
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type="audio/mpeg", headers={"Content-Disposition": f"attachment; filename={decoded_file_name}"})
