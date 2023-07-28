@@ -1,0 +1,26 @@
+{
+  "addons": [
+
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
+    }
+  ],
+  "description": "This is a FastAPI application that allows you to convert YouTube videos to MP3 files with custom bitrate options. ",
+  "env": {
+    "APP_URL": "enter_heroku_app_url"
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "name": "Youtube To Mp3 FastAPI",
+  "scripts": {
+  },
+  "stack": "heroku-22"
+}
