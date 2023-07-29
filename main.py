@@ -15,7 +15,7 @@ app = FastAPI()
 FFMPEG_PATH = os.getenv("FFMPEG_PATH", "ffmpeg")
 YT_DLP_PATH = os.getenv("YT_DLP_PATH", "yt-dlp")
 
-DOWNLOAD_FOLDER = "./download"
+DOWNLOAD_FOLDER = "download"
 
 # File to store the downloaded_files dictionary
 DOWNLOADED_FILES_FILE = "downloaded_files.pkl"
