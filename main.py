@@ -7,6 +7,7 @@ import subprocess
 import re
 from fastapi import FastAPI, HTTPException, Body, BackgroundTasks
 from fastapi.responses import FileResponse
+import requests
 
 app = FastAPI()
 
@@ -118,6 +119,9 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
         mp3_file = convert_to_mp3(audio_file, bitrate)
 
     # Get the title of the video
+    response = requests.get("https://noembed.com/embed?url="+youtube_url)
+    data = response.json()
+    vidtitle = data.get('title', 'Title not found')
     title = os.path.splitext(os.path.basename(audio_file))[0]
 
     # Create the download link for the converted MP3 file
@@ -127,7 +131,7 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
     # Schedule a background task to delete the .webm file after conversion
     background_tasks.add_task(delete_file_after_delay, audio_file, 0)
 
-    return {"title": title, "download_link": download_link}
+    return {"title": vidtitle, "download_link": download_link}
 
 @app.get("/download/{file_name}")
 async def download_mp3(file_name: str):
@@ -138,6 +142,9 @@ async def download_mp3(file_name: str):
         raise HTTPException(status_code=404, detail="File not found.")
 
 if __name__ == "__main__":
+    if not os.path.exists(DOWNLOAD_FOLDER):
+        os.makedirs(DOWNLOAD_FOLDER)
+        
     # Create the event loop explicitly
     loop = asyncio.get_event_loop()
 
