@@ -7,7 +7,8 @@ import subprocess
 import re
 from fastapi import FastAPI, HTTPException, Body, BackgroundTasks
 from fastapi.responses import FileResponse
-import requests
+import urllib.request
+import json
 
 app = FastAPI()
 
@@ -117,12 +118,13 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
     mp3_file = f"{os.path.splitext(audio_file)[0]}_{bitrate}kbps.mp3"
     if not os.path.exists(mp3_file):
         mp3_file = convert_to_mp3(audio_file, bitrate)
-
-    # Get the title of the video
-    response = requests.get("https://noembed.com/embed?url="+youtube_url)
-    data = response.json()
-    vidtitle = data.get('title', 'Title not found')
+    
     title = os.path.splitext(os.path.basename(audio_file))[0]
+    # Get the title of the video
+    vidtitle = title
+    with urllib.request.urlopen("https://noembed.com/embed?url="+youtube_url) as response:
+        data = json.loads(response.read().decode())
+        vidtitle = data.get('title', title)
 
     # Create the download link for the converted MP3 file
     file_name = title + f"_{bitrate}kbps.mp3"
@@ -144,7 +146,7 @@ async def download_mp3(file_name: str):
 if __name__ == "__main__":
     if not os.path.exists(DOWNLOAD_FOLDER):
         os.makedirs(DOWNLOAD_FOLDER)
-        
+
     # Create the event loop explicitly
     loop = asyncio.get_event_loop()
 
