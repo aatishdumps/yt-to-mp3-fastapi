@@ -65,18 +65,18 @@ async def remove_old_files(delay_seconds: int):
         await asyncio.sleep(delay_seconds)
 
 def download_audio(url: str) -> str:
-    cmd = f"{YT_DLP_PATH} -f 'bestaudio' -o '{DOWNLOAD_FOLDER}/%(title)s.%(ext)s' -- {url}"
+     # Get the file name
+    title = subprocess.check_output([YT_DLP_PATH, "--get-filename", "-o", f"%(title)s", url], text=True)
+    output_file = os.path.join(DOWNLOAD_FOLDER, make_safe_filename(title.strip()) + '.webm')
+    cmd = f'{YT_DLP_PATH} -f "bestaudio" -o "{output_file}" -- {url}'
     try:
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError:
         raise HTTPException(status_code=500, detail="Failed to download audio.")
-    
-    # Get the downloaded file name
-    title = subprocess.check_output([YT_DLP_PATH, "--get-filename", "-o", f"{DOWNLOAD_FOLDER}/%(title)s", url], text=True)
-    return title.strip() + ".webm"
+    return output_file
 
 def convert_to_mp3(input_file: str, bitrate: int) -> str:
-    output_file = f"{os.path.splitext(input_file)[0]}_{bitrate}kbps.mp3"
+    output_file = os.path.join(DOWNLOAD_FOLDER, f"{os.path.splitext(os.path.basename(input_file))[0]}_{bitrate}kbps.mp3")
     try:
         ffmpeg.input(input_file).output(output_file, audio_bitrate=f"{bitrate}k", loglevel="error").run(cmd=FFMPEG_PATH)
     except ffmpeg.Error as e:
@@ -85,8 +85,7 @@ def convert_to_mp3(input_file: str, bitrate: int) -> str:
 
 def get_download_link(file_path: str) -> str:
     file_name = os.path.basename(file_path)
-    encoded_file_name = quote_plus(file_name)
-    return f"{APP_URL}/download/{encoded_file_name}"
+    return f"{APP_URL}/{DOWNLOAD_FOLDER}/{file_name}"
 
 async def delete_file_after_delay(file_path: str, delay_seconds: int):
     await asyncio.sleep(delay_seconds)
@@ -123,8 +122,8 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
     title = os.path.splitext(os.path.basename(audio_file))[0]
 
     # Create the download link for the converted MP3 file
-    safe_file_name = make_safe_filename(title) + f"_{bitrate}kbps.mp3"
-    download_link = get_download_link(os.path.join(DOWNLOAD_FOLDER, safe_file_name))
+    file_name = title + f"_{bitrate}kbps.mp3"
+    download_link = get_download_link(file_name)
 
     # Schedule a background task to delete the .webm file after conversion
     background_tasks.add_task(delete_file_after_delay, audio_file, 0)
@@ -133,24 +132,13 @@ async def convert_to_mp3_endpoint(youtube_url: str = Body(...), bitrate: int = B
 
 @app.get("/download/{file_name}")
 async def download_mp3(file_name: str):
-    decoded_file_name = unquote_plus(file_name)
-    safe_file_name = make_safe_filename(decoded_file_name)
-    file_path = os.path.join(DOWNLOAD_FOLDER, safe_file_name)
-
-    print("Requested File Name:", decoded_file_name)
-    print("Generated Safe File Name:", safe_file_name)
-    print("Files in DOWNLOAD_FOLDER:", os.listdir(DOWNLOAD_FOLDER))
-
+    file_path = os.path.join(DOWNLOAD_FOLDER, file_name)
     if os.path.exists(file_path):
-        return FileResponse(file_path, media_type="audio/mpeg", headers={"Content-Disposition": f"attachment; filename={safe_file_name}"})
+        return FileResponse(file_path, media_type="audio/mpeg", headers={"Content-Disposition": f"attachment; filename={file_name}"})
     else:
         raise HTTPException(status_code=404, detail="File not found.")
 
-
 if __name__ == "__main__":
-    if not os.path.exists(DOWNLOAD_FOLDER):
-        os.makedirs(DOWNLOAD_FOLDER)
-
     # Create the event loop explicitly
     loop = asyncio.get_event_loop()
 
