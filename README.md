@@ -2,9 +2,9 @@
 This is a FastAPI application that allows you to convert YouTube videos to MP3 files with custom bitrate options. The application uses yt-dlp to download the audio from YouTube and ffmpeg to convert it to MP3 format. It also includes background tasks to automatically clean up old downloaded files and stores the download history in a local file for persistence across server restarts.
 
 <h3>Features</h3>
-Download and convert YouTube videos to MP3 with custom bitrate options (128, 192, 256, 320 kbps).
-Background tasks to remove old downloaded files and manage download history.
-Easy-to-use API with FastAPI framework.
+Download and convert YouTube videos to MP3 with custom bitrate options (128, 192, 256, 320 kbps).<br>
+Background tasks to remove old downloaded files and manage download history.<br>
+Easy-to-use API with FastAPI framework.<br>
 Customizable paths for ffmpeg and yt-dlp using environment variables.
 
 <h3>Requirements</h3>
